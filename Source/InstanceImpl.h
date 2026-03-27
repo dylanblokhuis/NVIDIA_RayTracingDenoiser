@@ -56,6 +56,12 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #    define FillSPIRV(blobName, defines, computeShader)
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+#    define FillMETAL(blobName, defines, computeShader) ShaderMake::FindPermutationInBlob(g_##blobName##_cs_metal, GetCountOf(g_##blobName##_cs_metal), defines.data(), (uint32_t)defines.size(), &computeShader.bytecode, (size_t*)&computeShader.size)
+#else
+#    define FillMETAL(blobName, defines, computeShader)
+#endif
+
 #define FillShaderIdentifier(blobName, defines, shaderIdentifier) \
     do { \
         int32_t _n = snprintf(shaderIdentifier, sizeof(shaderIdentifier), _NRD_STRINGIFY(blobName) ".cs.hlsl"); \
@@ -72,6 +78,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
         FillDXBC(blobName, defines, pipelineDesc.computeShaderDXBC); \
         FillDXIL(blobName, defines, pipelineDesc.computeShaderDXIL); \
         FillSPIRV(blobName, defines, pipelineDesc.computeShaderSPIRV); \
+        FillMETAL(blobName, defines, pipelineDesc.computeShaderMetal); \
         FillShaderIdentifier(blobName, defines, pipelineDesc.shaderIdentifier); \
         AddInternalDispatch( \
             pipelineDesc, \
@@ -85,6 +92,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
         FillDXBC(blobName, defines, pipelineDesc.computeShaderDXBC); \
         FillDXIL(blobName, defines, pipelineDesc.computeShaderDXIL); \
         FillSPIRV(blobName, defines, pipelineDesc.computeShaderSPIRV); \
+        FillMETAL(blobName, defines, pipelineDesc.computeShaderMetal); \
         FillShaderIdentifier(blobName, defines, pipelineDesc.shaderIdentifier); \
         AddInternalDispatch( \
             pipelineDesc, \
@@ -98,6 +106,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
         FillDXBC(blobName, defines, pipelineDesc.computeShaderDXBC); \
         FillDXIL(blobName, defines, pipelineDesc.computeShaderDXIL); \
         FillSPIRV(blobName, defines, pipelineDesc.computeShaderSPIRV); \
+        FillMETAL(blobName, defines, pipelineDesc.computeShaderMetal); \
         FillShaderIdentifier(blobName, defines, pipelineDesc.shaderIdentifier); \
         AddInternalDispatch( \
             pipelineDesc, \

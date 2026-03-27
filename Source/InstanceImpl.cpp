@@ -76,6 +76,10 @@ constexpr std::array<bool, (size_t)nrd::Format::MAX_NUM> g_IsIntegerFormat = {
 #    include "Clear.cs.spirv.h"
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+#    include "Clear.cs.metal.h"
+#endif
+
 inline bool IsInList(nrd::Identifier identifier, const nrd::Identifier* identifiers, uint32_t identifiersNum) {
     for (uint32_t i = 0; i < identifiersNum; i++) {
         if (identifiers[i] == identifier)
@@ -572,6 +576,10 @@ void nrd::InstanceImpl::AddInternalDispatch(PipelineDesc& pipelineDesc, NumThrea
     assert("SPIRV: shader permutation is not found!" && pipelineDesc.computeShaderSPIRV.bytecode);
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+    assert("METAL: shader permutation is not found!" && pipelineDesc.computeShaderMetal.bytecode);
+#endif
+
     // Add pipeline (unique only)
     size_t pipelineIndex = 0;
     for (; pipelineIndex < m_Pipelines.size(); pipelineIndex++) {
@@ -585,6 +593,9 @@ void nrd::InstanceImpl::AddInternalDispatch(PipelineDesc& pipelineDesc, NumThrea
             break;
 #elif NRD_EMBEDS_SPIRV_SHADERS
         if (pipeline.computeShaderSPIRV.bytecode == pipelineDesc.computeShaderSPIRV.bytecode)
+            break;
+#elif NRD_EMBEDS_METAL_SHADERS
+        if (pipeline.computeShaderMetal.bytecode == pipelineDesc.computeShaderMetal.bytecode)
             break;
 #endif
     }

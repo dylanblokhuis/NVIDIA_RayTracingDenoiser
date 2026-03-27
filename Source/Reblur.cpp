@@ -433,6 +433,19 @@ void nrd::InstanceImpl::AddSharedConstants_Reblur(const ReblurSettings& settings
 #    include "REBLUR_Validation.cs.spirv.h"
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+#    include "REBLUR_Blur.cs.metal.h"
+#    include "REBLUR_ClassifyTiles.cs.metal.h"
+#    include "REBLUR_HistoryFix.cs.metal.h"
+#    include "REBLUR_HitDistReconstruction.cs.metal.h"
+#    include "REBLUR_PostBlur.cs.metal.h"
+#    include "REBLUR_PrePass.cs.metal.h"
+#    include "REBLUR_SplitScreen.cs.metal.h"
+#    include "REBLUR_TemporalAccumulation.cs.metal.h"
+#    include "REBLUR_TemporalStabilization.cs.metal.h"
+#    include "REBLUR_Validation.cs.metal.h"
+#endif
+
 // Denoisers
 #include "Denoisers/Reblur_Diffuse.hpp"
 #include "Denoisers/Reblur_DiffuseDirectionalOcclusion.hpp"

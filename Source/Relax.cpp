@@ -329,6 +329,21 @@ void nrd::InstanceImpl::Update_Relax(const DenoiserData& denoiserData) {
 #    include "RELAX_Validation.cs.spirv.h"
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+#    include "RELAX_AntiFirefly.cs.metal.h"
+#    include "RELAX_Atrous.cs.metal.h"
+#    include "RELAX_AtrousSmem.cs.metal.h"
+#    include "RELAX_ClassifyTiles.cs.metal.h"
+#    include "RELAX_Copy.cs.metal.h"
+#    include "RELAX_HistoryClamping.cs.metal.h"
+#    include "RELAX_HistoryFix.cs.metal.h"
+#    include "RELAX_HitDistReconstruction.cs.metal.h"
+#    include "RELAX_PrePass.cs.metal.h"
+#    include "RELAX_SplitScreen.cs.metal.h"
+#    include "RELAX_TemporalAccumulation.cs.metal.h"
+#    include "RELAX_Validation.cs.metal.h"
+#endif
+
 // Denoisers
 #include "Denoisers/Relax_Diffuse.hpp"
 #include "Denoisers/Relax_DiffuseSh.hpp"

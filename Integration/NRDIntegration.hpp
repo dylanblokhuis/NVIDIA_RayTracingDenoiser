@@ -210,6 +210,7 @@ bool Integration::RecreatePipelines() {
 
     for (uint32_t i = 0; i < instanceDesc.pipelinesNum; i++) {
         const PipelineDesc& nrdPipelineDesc = instanceDesc.pipelines[i];
+        // NRI GraphicsAPI order: NONE=0, D3D11=1, D3D12=2, VK=3, native Metal=4 (when NRI exposes it). PipelineDesc holds DXBC, DXIL, SPIRV, Metal at consecutive indices 0..3.
         const ComputeShaderDesc& nrdComputeShader = (&nrdPipelineDesc.computeShaderDXBC)[std::max((int32_t)deviceDesc.graphicsAPI - 1, 0)];
 
         nri::ShaderDesc computeShader = {};

@@ -52,6 +52,9 @@ message("NRD: v${NRD_VERSION_MAJOR}.${NRD_VERSION_MINOR}.${NRD_VERSION_BUILD}")
 
 project(NRD VERSION ${NRD_VERSION_MAJOR}.${NRD_VERSION_MINOR}.${NRD_VERSION_BUILD} LANGUAGES CXX)
 
+cmake_dependent_option(NRD_EMBEDS_METAL_SHADERS "NRD embeds Metal metallib shaders (SPIRV-Cross + Xcode)" ON "APPLE;NRD_EMBEDS_SPIRV_SHADERS" OFF)
+set(NRD_SPIRV_CROSS_EXECUTABLE "" CACHE FILEPATH "Optional spirv-cross executable; if empty, CMake searches PATH then fetches SPIRV-Cross")
+
 # Enable grouping of source files into folders in IDEs
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -267,6 +270,7 @@ target_compile_definitions(NRD
         NRD_EMBEDS_SPIRV_SHADERS=$<BOOL:${NRD_EMBEDS_SPIRV_SHADERS}>
         NRD_EMBEDS_DXIL_SHADERS=$<BOOL:${NRD_EMBEDS_DXIL_SHADERS}>
         NRD_EMBEDS_DXBC_SHADERS=$<BOOL:${NRD_EMBEDS_DXBC_SHADERS}>
+        NRD_EMBEDS_METAL_SHADERS=$<BOOL:${NRD_EMBEDS_METAL_SHADERS}>
         SPIRV_SREG_OFFSET=${SPIRV_SREG_OFFSET}
         SPIRV_BREG_OFFSET=${SPIRV_BREG_OFFSET}
         SPIRV_UREG_OFFSET=${SPIRV_UREG_OFFSET}
@@ -382,6 +386,62 @@ add_custom_target(NRDShaders ALL ${SHADERMAKE_COMMANDS}
 
 set_target_properties(NRDShaders PROPERTIES FOLDER "NRD")
 add_dependencies(NRD NRDShaders)
+
+# SPIR-V (ShaderMake) -> MSL -> metallib -> NVSP header (Apple host)
+if(NRD_EMBEDS_METAL_SHADERS)
+    add_executable(SpirvToMetallib "Tools/SpirvToMetallib/main.cpp")
+    target_compile_features(SpirvToMetallib PRIVATE cxx_std_17)
+    set_target_properties(SpirvToMetallib PROPERTIES FOLDER "NRD")
+
+    set(_NRD_METAL_SPIRV_CROSS "")
+    if(NRD_SPIRV_CROSS_EXECUTABLE)
+        set(_NRD_METAL_SPIRV_CROSS "${NRD_SPIRV_CROSS_EXECUTABLE}")
+    else()
+        find_program(_NRD_METAL_SPIRV_CROSS NAMES spirv-cross PATHS /opt/homebrew/bin /usr/local/bin)
+    endif()
+
+    if(NOT _NRD_METAL_SPIRV_CROSS)
+        set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+        set(SPIRV_CROSS_CLI ON CACHE BOOL "" FORCE)
+        set(SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
+        set(SPIRV_CROSS_WERROR OFF CACHE BOOL "" FORCE)
+        fetchcontent_declare(
+            spirv_cross
+            DOWNLOAD_EXTRACT_TIMESTAMP 1
+            DOWNLOAD_NO_PROGRESS 1
+            URL https://github.com/KhronosGroup/SPIRV-Cross/archive/refs/tags/vulkan-sdk-1.4.328.0.zip
+        )
+        fetchcontent_makeavailable(spirv_cross)
+        if(TARGET spirv-cross)
+            set_target_properties(spirv-cross PROPERTIES FOLDER "Dependencies")
+        endif()
+        add_custom_target(
+            NRDShadersMetal ALL
+            COMMAND /bin/bash "${CMAKE_CURRENT_SOURCE_DIR}/Tools/gen_metal_shaders.sh"
+                "$<TARGET_FILE:spirv-cross>"
+                "${NRD_SHADERS_PATH}"
+                "$<TARGET_FILE:SpirvToMetallib>"
+            DEPENDS NRDShaders SpirvToMetallib spirv-cross
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            VERBATIM
+        )
+    else()
+        add_custom_target(
+            NRDShadersMetal ALL
+            COMMAND /bin/bash "${CMAKE_CURRENT_SOURCE_DIR}/Tools/gen_metal_shaders.sh"
+                "${_NRD_METAL_SPIRV_CROSS}"
+                "${NRD_SHADERS_PATH}"
+                "$<TARGET_FILE:SpirvToMetallib>"
+            DEPENDS NRDShaders SpirvToMetallib
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            VERBATIM
+        )
+    endif()
+
+    set_target_properties(NRDShadersMetal PROPERTIES FOLDER "NRD")
+    add_dependencies(NRD NRDShadersMetal)
+    message(STATUS "NRD_EMBEDS_METAL_SHADERS (spirv-cross: ${_NRD_METAL_SPIRV_CROSS})")
+endif()
 
 # Info
 message("NRD: shaders path '${NRD_SHADERS_PATH}'")

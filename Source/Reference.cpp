@@ -26,5 +26,10 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #    include "REFERENCE_TemporalAccumulation.cs.spirv.h"
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+#    include "REFERENCE_Copy.cs.metal.h"
+#    include "REFERENCE_TemporalAccumulation.cs.metal.h"
+#endif
+
 // Denoisers
 #include "Denoisers/Reference.hpp"

@@ -443,6 +443,8 @@ namespace nrd
         ComputeShaderDesc computeShaderDXBC;
         ComputeShaderDesc computeShaderDXIL;
         ComputeShaderDesc computeShaderSPIRV;
+        // Precompiled .metallib bytes (macOS / SPIRV-Cross path). Index 3 when using NRI-style GraphicsAPI: NONE=0, D3D11=1, D3D12=2, VK=3, METAL=4.
+        ComputeShaderDesc computeShaderMetal;
         const ResourceRangeDesc* resourceRanges;
         uint32_t resourceRangesNum; // up to 2 ranges: "TEXTURE" inputs (optional) and "TEXTURE_STORAGE" outputs
 

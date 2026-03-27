@@ -15,3 +15,5 @@ _Shaders/
 _NRD_SDK/
 _NRI_SDK/
 NRDConfig.hlsli
+
+.DS_Store

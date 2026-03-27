@@ -164,5 +164,14 @@ void nrd::InstanceImpl::AddSharedConstants_Sigma(const SigmaSettings& settings, 
 #    include "SIGMA_SplitScreen.cs.spirv.h"
 #endif
 
+#if NRD_EMBEDS_METAL_SHADERS
+#    include "SIGMA_ClassifyTiles.cs.metal.h"
+#    include "SIGMA_SmoothTiles.cs.metal.h"
+#    include "SIGMA_Copy.cs.metal.h"
+#    include "SIGMA_Blur.cs.metal.h"
+#    include "SIGMA_TemporalStabilization.cs.metal.h"
+#    include "SIGMA_SplitScreen.cs.metal.h"
+#endif
+
 #include "Denoisers/Sigma_Shadow.hpp"
 #include "Denoisers/Sigma_ShadowTranslucency.hpp"
