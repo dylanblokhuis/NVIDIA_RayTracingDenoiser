@@ -603,6 +603,9 @@ void nrd::InstanceImpl::AddInternalDispatch(PipelineDesc& pipelineDesc, NumThrea
     if (pipelineIndex == m_Pipelines.size()) {
         pipelineDesc.resourceRanges = (ResourceRangeDesc*)m_ResourceRanges.size();
         pipelineDesc.hasConstantData = constantBufferDataSize != 0;
+        pipelineDesc.workgroupSizeX = numThreads.width;
+        pipelineDesc.workgroupSizeY = numThreads.height;
+        pipelineDesc.workgroupSizeZ = 1;
 
         for (size_t r = 0; r < 2; r++) {
             ResourceRangeDesc descriptorRange = {};
@@ -622,7 +625,6 @@ void nrd::InstanceImpl::AddInternalDispatch(PipelineDesc& pipelineDesc, NumThrea
 
         m_Pipelines.push_back(pipelineDesc);
     }
-
     // Add dispatch
     InternalDispatchDesc dispatchDesc = {};
     dispatchDesc.name = m_PassName;

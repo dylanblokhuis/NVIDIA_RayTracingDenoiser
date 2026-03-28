@@ -451,6 +451,11 @@ namespace nrd
         // Hint that pipeline has a constant buffer with shared parameters from "InstanceDesc"
         bool hasConstantData;
 
+        // Compute shader workgroup size, i.e. [numthreads(x, y, z)]
+        uint8_t workgroupSizeX;
+        uint8_t workgroupSizeY;
+        uint8_t workgroupSizeZ;
+
         // Format: "fileName|macro1=value1|macro2=value2..." (useful for custom integrations)
         char shaderIdentifier[256];
     };
