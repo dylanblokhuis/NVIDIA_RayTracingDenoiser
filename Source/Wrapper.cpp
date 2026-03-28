@@ -209,6 +209,83 @@ NRD_API const nrd::InstanceDesc* NRD_CALL nrd::GetInstanceDesc(const Instance& d
     return &((const InstanceImpl&)denoiser).GetDesc();
 }
 
+NRD_API nrd::Result NRD_CALL nrd::GetPipelineDescriptorBindingDescs(const Instance& instance, uint16_t pipelineIndex, bool spirvLayout, DescriptorBindingDesc* descriptorBindingDescs, uint32_t& descriptorBindingDescsNum) {
+    const InstanceDesc* instanceDesc = GetInstanceDesc(instance);
+    if (!instanceDesc || pipelineIndex >= instanceDesc->pipelinesNum)
+        return Result::INVALID_ARGUMENT;
+
+    const LibraryDesc* libraryDesc = GetLibraryDesc();
+    if (!libraryDesc)
+        return Result::FAILURE;
+
+    const PipelineDesc& pipelineDesc = instanceDesc->pipelines[pipelineIndex];
+    const uint32_t samplerOffset = spirvLayout ? libraryDesc->spirvBindingOffsets.samplerOffset : 0;
+    const uint32_t textureOffset = spirvLayout ? libraryDesc->spirvBindingOffsets.textureOffset : 0;
+    const uint32_t constantBufferOffset = spirvLayout ? libraryDesc->spirvBindingOffsets.constantBufferOffset : 0;
+    const uint32_t storageTextureOffset = spirvLayout ? libraryDesc->spirvBindingOffsets.storageTextureAndBufferOffset : 0;
+
+    uint32_t requiredNum = instanceDesc->samplersNum;
+    if (pipelineDesc.hasConstantData)
+        requiredNum++;
+
+    for (uint32_t i = 0; i < pipelineDesc.resourceRangesNum; i++)
+        requiredNum += pipelineDesc.resourceRanges[i].descriptorsNum;
+
+    if (!descriptorBindingDescs) {
+        descriptorBindingDescsNum = requiredNum;
+        return Result::SUCCESS;
+    }
+
+    if (descriptorBindingDescsNum < requiredNum) {
+        descriptorBindingDescsNum = requiredNum;
+        return Result::INVALID_ARGUMENT;
+    }
+
+    uint32_t n = 0;
+    if (pipelineDesc.hasConstantData) {
+        descriptorBindingDescs[n++] = {
+            BindingType::CONSTANT_BUFFER,
+            instanceDesc->constantBufferAndSamplersSpaceIndex,
+            instanceDesc->constantBufferRegisterIndex + constantBufferOffset,
+        };
+    }
+
+    const uint32_t samplersBaseBinding = instanceDesc->samplersBaseRegisterIndex + samplerOffset;
+    for (uint32_t i = 0; i < instanceDesc->samplersNum; i++) {
+        descriptorBindingDescs[n++] = {
+            BindingType::SAMPLER,
+            instanceDesc->constantBufferAndSamplersSpaceIndex,
+            samplersBaseBinding + i,
+        };
+    }
+
+    uint32_t textureBindingIndex = instanceDesc->resourcesBaseRegisterIndex + textureOffset;
+    uint32_t storageTextureBindingIndex = instanceDesc->resourcesBaseRegisterIndex + storageTextureOffset;
+    for (uint32_t i = 0; i < pipelineDesc.resourceRangesNum; i++) {
+        const ResourceRangeDesc& range = pipelineDesc.resourceRanges[i];
+        const bool isTexture = range.descriptorType == DescriptorType::TEXTURE;
+        const BindingType bindingType = isTexture ? BindingType::TEXTURE : BindingType::STORAGE_TEXTURE;
+        uint32_t baseBindingIndex = isTexture ? textureBindingIndex : storageTextureBindingIndex;
+
+        for (uint32_t j = 0; j < range.descriptorsNum; j++) {
+            descriptorBindingDescs[n++] = {
+                bindingType,
+                instanceDesc->resourcesSpaceIndex,
+                baseBindingIndex + j,
+            };
+        }
+
+        if (isTexture)
+            textureBindingIndex += range.descriptorsNum;
+        else
+            storageTextureBindingIndex += range.descriptorsNum;
+    }
+
+    descriptorBindingDescsNum = n;
+
+    return Result::SUCCESS;
+}
+
 NRD_API nrd::Result NRD_CALL nrd::SetCommonSettings(Instance& instance, const CommonSettings& commonSettings) {
     return ((InstanceImpl&)instance).SetCommonSettings(commonSettings);
 }

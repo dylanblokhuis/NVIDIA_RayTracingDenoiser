@@ -54,6 +54,9 @@ namespace nrd
     // Get
     NRD_API const LibraryDesc* NRD_CALL GetLibraryDesc();
     NRD_API const InstanceDesc* NRD_CALL GetInstanceDesc(const Instance& instance);
+    // If "descriptorBindingDescs" is null, "descriptorBindingDescsNum" receives required size.
+    // If non-null, it must point to an array of at least "descriptorBindingDescsNum" elements.
+    NRD_API Result NRD_CALL GetPipelineDescriptorBindingDescs(const Instance& instance, uint16_t pipelineIndex, bool spirvLayout, DescriptorBindingDesc* descriptorBindingDescs, uint32_t& descriptorBindingDescsNum);
 
     // Typically needs to be called once per frame
     NRD_API Result NRD_CALL SetCommonSettings(Instance& instance, const CommonSettings& commonSettings);

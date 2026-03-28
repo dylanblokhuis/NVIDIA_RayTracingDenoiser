@@ -455,6 +455,23 @@ namespace nrd
         char shaderIdentifier[256];
     };
 
+    enum class BindingType : uint32_t
+    {
+        CONSTANT_BUFFER,
+        SAMPLER,
+        TEXTURE,
+        STORAGE_TEXTURE,
+
+        MAX_NUM
+    };
+
+    struct DescriptorBindingDesc
+    {
+        BindingType bindingType;
+        uint32_t spaceIndex;
+        uint32_t bindingIndex;
+    };
+
     struct DescriptorPoolDesc
     {
         // (Recommended) use a root CBV (push descriptor) for constants
